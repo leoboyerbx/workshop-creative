@@ -7,7 +7,7 @@ from numpy import sign
 screenWidth = 1280
 screenHeight = 720
 
-racketSize = 100
+racketSize = 30
 # Racket speed
 racketOffset = 100
 
