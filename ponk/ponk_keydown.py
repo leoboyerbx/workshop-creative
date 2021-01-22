@@ -3,14 +3,17 @@ import time
 import turtle
 
 # Settings
-screenWidth = 1800
-screenHeight = 1200
+screenWidth = 1280
+screenHeight = 720
 
 racketSize = 200
 racketOffset = 100
 
 delay = 0.0025
-ballOffset = 15
+ballOffset = 10
+# Increase speed by 10% each 5 points for the leader
+speedIncreaseFactor = 1.1
+speedIncreaseStep = 5
 
 
 def move_racket_up(racket, moveBy = racketOffset):
@@ -122,11 +125,18 @@ def unpause():
 
 def update_scores():
     global scoresPen
+    global scores
+    global ballOffset
     scoresPen.clear()
     scoresPen.goto(-50, (screenHeight / 2) - 50)
     scoresPen.write(scores[0], align="center", font=("Courier", 24, "normal"))
     scoresPen.goto(50, (screenHeight / 2) - 50)
     scoresPen.write(scores[1], align="center", font=("Courier", 24, "normal"))
+
+    # Increase speed each 5 pts
+    leaderScore = max(scores)
+    if leaderScore > 0 and leaderScore % speedIncreaseStep == 0:
+        ballOffset *= speedIncreaseFactor
 
 
 def reset_ball():
