@@ -1,13 +1,12 @@
 import random
 import time
 import turtle
-from numpy import sign
 
 # Settings
 screenWidth = 1280
 screenHeight = 720
 
-racketSize = 100
+racketSize = 150
 # Racket speed
 racketOffset = 100
 
@@ -20,37 +19,32 @@ speedIncreaseFactor = 1.1
 speedIncreaseStep = 5
 speedIncreaseMax = 25
 
-computerSight = 160
-computerSlowness = 8
 
-
-def move_racket_up(racket, moveBy=racketOffset):
+def move_racket_up(racket, moveBy = racketOffset):
     move_racket(racket, moveBy)
 
 
-def move_racket_down(racket, moveBy=racketOffset):
+def move_racket_down(racket, moveBy = racketOffset):
     move_racket(racket, -moveBy)
 
 
-def start_moving_up(racket, moveBy=racketOffset / 5):
+def start_moving_up(racket, moveBy = racketOffset/5):
     racket.moveBy = moveBy
 
 
-def start_moving_down(racket, moveBy=racketOffset / 5):
+def start_moving_down(racket, moveBy = racketOffset/5):
     racket.moveBy = -moveBy
 
 
 def stop_moving(racket):
     racket.moveBy = 0
 
+    def move_racket_up_anim(racket, moveBy=racketOffset / 5, moveTimes=5):
+        if len(racket.animQueue) == 0:
+            for i in range(moveTimes):
+                racket.animQueue.append(moveBy)
 
-def move_racket_up_anim(racket, moveBy=racketOffset / 5, moveTimes=5):
-    if len(racket.animQueue) == 0:
-        for i in range(moveTimes):
-            racket.animQueue.append(moveBy)
-
-
-def move_racket_down_anim(racket, moveBy=racketOffset / 5, moveTimes=5):
+    def move_racket_down_anim(racket, moveBy=racketOffset / 5, moveTimes=5):
         if len(racket.animQueue) == 0:
             for i in range(moveTimes):
                 racket.animQueue.append(-moveBy)
@@ -59,9 +53,9 @@ def move_racket_down_anim(racket, moveBy=racketOffset / 5, moveTimes=5):
 def move_racket(racket, moveBy):
     y = racket.ycor()
     if (
-            (y - (racketSize / 2) > - screenHeight / 2 and moveBy < 0)
+        (y - (racketSize / 2) > - screenHeight / 2 and moveBy < 0)
             or
-            (y + (racketSize / 2) < screenHeight / 2 and moveBy > 0)
+        (y + (racketSize / 2) < screenHeight / 2 and moveBy > 0)
     ):
         racket.sety(y + moveBy)
 
@@ -74,19 +68,13 @@ def create_racket(xPos):
     racket.turtlesize(racketSize / 20, 1)  # Divide by 20 to convert turtle scale to coords size
     racket.penup()
     racket.goto(xPos, 0)
-
-    racket.moveBy = 0
-    racket.animQueue = []
-    racket.enableComputerPlay = False
-    racket.computerHasPlayed = False
-
     return racket
 
 
 def rand_ball_speed():
     global ballXSpeed
     global ballYSpeed
-    ballXSpeed = random.choice([-1, 1]) * (random.random() + 0.5)
+    ballXSpeed = random.choice([-1, 1]) * (random.random() * 1.5 + 0.5)
     ballYSpeed = 2 - abs(ballXSpeed)
 
 
@@ -133,17 +121,13 @@ def detect_victory():
         victory(0)
 
 
-def victory(player):
+def victory (player):
     global scores
     global paused
-    global leftRacket
-    global rightRacket
     reset_ball()
     scores[player] += 1
     update_scores()
     paused = True
-    leftRacket.animQueue = []
-    rightRacket.animQueue = []
     next_tick(lambda: time.sleep(2))
     next_tick(unpause)
 
@@ -195,12 +179,6 @@ def tick():
 def anim_rackets():
     global leftRacket
     global rightRacket
-
-    if leftRacket.enableComputerPlay:
-        computer_play(leftRacket)
-    if rightRacket.enableComputerPlay:
-        computer_play(rightRacket)
-
     move_racket(leftRacket, leftRacket.moveBy)
     move_racket(rightRacket, rightRacket.moveBy)
 
@@ -208,26 +186,6 @@ def anim_rackets():
         move_racket(leftRacket, leftRacket.animQueue.pop(0))
     if len(rightRacket.animQueue) > 0:
         move_racket(rightRacket, rightRacket.animQueue.pop(0))
-
-
-def computer_play(racket):
-    xBall = ball.xcor()
-    if (
-            (
-                racket == leftRacket
-                and -(screenWidth / 2) - 50 < xBall
-                and xBall < -(screenWidth / 2) + computerSight
-            )
-            or
-            (
-                racket == rightRacket
-                and (screenWidth / 2) + 50 > xBall
-                and xBall > (screenWidth / 2) - computerSight
-            )
-    ):
-        diff = ball.ycor() - racket.ycor()
-        move_racket(racket, sign(diff) * (ballOffset*2 - computerSlowness))
-
 
 
 # bind_key
@@ -242,8 +200,10 @@ win.tracer(0)
 # rackets
 leftRacket = create_racket(-(screenWidth / 2))
 rightRacket = create_racket((screenWidth / 2) - 10)
-leftRacket.enableComputerPlay = True
-# rightRacket.enableComputerPlay = True
+leftRacket.moveBy = 0
+rightRacket.moveBy = 0
+leftRacket.animQueue = []
+rightRacket.animQueue = []
 
 # field
 fieldSeparator = turtle.Turtle()
@@ -278,17 +238,15 @@ update_scores()
 paused = False
 
 win.listen()
-if not (leftRacket.enableComputerPlay):
-    win.onkeypress(lambda: start_moving_up(leftRacket), "a")
-    win.onkeypress(lambda: start_moving_down(leftRacket), "q")
-    win.onkeyrelease(lambda: stop_moving(leftRacket), "a")
-    win.onkeyrelease(lambda: stop_moving(leftRacket), "q")
+win.onkeypress(lambda: start_moving_up(leftRacket), "a")
+win.onkeypress(lambda: start_moving_down(leftRacket), "q")
+win.onkeyrelease(lambda: stop_moving(leftRacket), "a")
+win.onkeyrelease(lambda: stop_moving(leftRacket), "q")
 
-if not (rightRacket.enableComputerPlay):
-    win.onkeypress(lambda: start_moving_up(rightRacket), "Up")
-    win.onkeypress(lambda: start_moving_down(rightRacket), "Down")
-    win.onkeyrelease(lambda: stop_moving(rightRacket), "Up")
-    win.onkeyrelease(lambda: stop_moving(rightRacket), "Down")
+win.onkeypress(lambda: start_moving_up(rightRacket), "Up")
+win.onkeypress(lambda: start_moving_down(rightRacket), "Down")
+win.onkeyrelease(lambda: stop_moving(rightRacket), "Up")
+win.onkeyrelease(lambda: stop_moving(rightRacket), "Down")
 
 actionsNextTick = []
 # mainLoop
@@ -298,7 +256,6 @@ while True:
 
     move_ball()
     anim_rackets()
-
     detect_victory()
     compute_ball_collisions()
 

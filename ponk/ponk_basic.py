@@ -3,51 +3,26 @@ import time
 import turtle
 
 # Settings
-screenWidth = 1280
-screenHeight = 720
+screenWidth = 1000
+screenHeight = 600
 
 racketSize = 150
-# Racket speed
-racketOffset = 100
+racketOffset = 40
 
-# Screen refresh delay
-delay = 0.0025
-# Initial ball speed
+delay = 0.005
 ballOffset = 10
-# Increase speed by 10% each 5 points for the leader, until 25
-speedIncreaseFactor = 1.1
-speedIncreaseStep = 5
-speedIncreaseMax = 25
 
 
 def move_racket_up(racket, moveBy = racketOffset):
-    move_racket(racket, moveBy)
+    y = racket.ycor()
+    if y + (racketSize / 2) < screenHeight / 2:
+        racket.sety(y + moveBy)
 
 
 def move_racket_down(racket, moveBy = racketOffset):
-    move_racket(racket, -moveBy)
-
-
-def start_moving_up(racket, moveBy = racketOffset/5):
-    racket.moveBy = moveBy
-
-
-def start_moving_down(racket, moveBy = racketOffset/5):
-    racket.moveBy = -moveBy
-
-
-def stop_moving(racket):
-    racket.moveBy = 0
-
-
-def move_racket(racket, moveBy):
     y = racket.ycor()
-    if (
-        (y - (racketSize / 2) > - screenHeight / 2 and moveBy < 0)
-            or
-        (y + (racketSize / 2) < screenHeight / 2 and moveBy > 0)
-    ):
-        racket.sety(y + moveBy)
+    if y - (racketSize / 2) > - screenHeight / 2:
+        racket.sety(y - moveBy)
 
 
 def create_racket(xPos):
@@ -66,6 +41,7 @@ def rand_ball_speed():
     global ballYSpeed
     ballXSpeed = random.choice([-1, 1]) * (random.random() * 1.5 + 0.5)
     ballYSpeed = 2 - abs(ballXSpeed)
+
 
 
 def move_ball():
@@ -105,7 +81,7 @@ def compute_ball_collisions():
 
 def detect_victory():
     x = ball.xcor()
-    if x <= (-screenWidth / 2) - 10:
+    if x <= (-screenWidth / 2):
         victory(1)
     elif x >= (screenWidth / 2):
         victory(0)
@@ -113,40 +89,19 @@ def detect_victory():
 
 def victory (player):
     global scores
-    global paused
     reset_ball()
     scores[player] += 1
     update_scores()
-    paused = True
-    next_tick(lambda: time.sleep(2))
-    next_tick(unpause)
-
-
-def unpause():
-    global paused
-    paused = False
+    next_tick(lambda : time.sleep(2))
 
 
 def update_scores():
     global scoresPen
-    global ballSpeedPen
-    global scores
-    global ballOffset
     scoresPen.clear()
     scoresPen.goto(-50, (screenHeight / 2) - 50)
     scoresPen.write(scores[0], align="center", font=("Courier", 24, "normal"))
     scoresPen.goto(50, (screenHeight / 2) - 50)
     scoresPen.write(scores[1], align="center", font=("Courier", 24, "normal"))
-
-    # Increase speed each 5 pts
-    leaderScore = max(scores)
-    if leaderScore > 0 and leaderScore % speedIncreaseStep == 0:
-        newBallOffset = ballOffset * speedIncreaseFactor
-        ballOffset = min(newBallOffset, speedIncreaseMax)
-
-    ballSpeedPen.clear()
-    ballSpeedPen.goto(- screenWidth / 2 + 100, (-screenHeight / 2) + 30)
-    ballSpeedPen.write("Ball speed: {}".format(round(ballOffset)), align="center", font=("Courier", 15, "normal"))
 
 
 def reset_ball():
@@ -159,21 +114,12 @@ def next_tick(action):
     actionsNextTick.append(action)
 
 
-def tick():
+def tick ():
     global actionsNextTick
     for action in actionsNextTick:
         action()
     actionsNextTick = []
 
-
-def anim_rackets():
-    global leftRacket
-    global rightRacket
-    move_racket(leftRacket, leftRacket.moveBy)
-    move_racket(rightRacket, rightRacket.moveBy)
-
-
-# bind_key
 
 # init
 win = turtle.Screen()
@@ -185,8 +131,6 @@ win.tracer(0)
 # rackets
 leftRacket = create_racket(-(screenWidth / 2))
 rightRacket = create_racket((screenWidth / 2) - 10)
-leftRacket.moveBy = 0
-rightRacket.moveBy = 0
 
 # field
 fieldSeparator = turtle.Turtle()
@@ -209,27 +153,15 @@ scoresPen.shape("square")
 scoresPen.color("#fce14b")
 scoresPen.penup()
 scoresPen.hideturtle()
-
-ballSpeedPen = turtle.Turtle()
-ballSpeedPen.speed(0)
-ballSpeedPen.shape("square")
-ballSpeedPen.color("#fce14b")
-ballSpeedPen.penup()
-ballSpeedPen.hideturtle()
 update_scores()
 
-paused = False
 
 win.listen()
-win.onkeypress(lambda: start_moving_up(leftRacket), "a")
-win.onkeypress(lambda: start_moving_down(leftRacket), "q")
-win.onkeyrelease(lambda: stop_moving(leftRacket), "a")
-win.onkeyrelease(lambda: stop_moving(leftRacket), "q")
+win.onkeypress(lambda: move_racket_up(leftRacket), "a")
+win.onkeypress(lambda: move_racket_down(leftRacket), "q")
 
-win.onkeypress(lambda: start_moving_up(rightRacket), "Up")
-win.onkeypress(lambda: start_moving_down(rightRacket), "Down")
-win.onkeyrelease(lambda: stop_moving(rightRacket), "Up")
-win.onkeyrelease(lambda: stop_moving(rightRacket), "Down")
+win.onkeypress(lambda: move_racket_up(rightRacket), "Up")
+win.onkeypress(lambda: move_racket_down(rightRacket), "Down")
 
 actionsNextTick = []
 # mainLoop
@@ -238,7 +170,6 @@ while True:
     tick()
 
     move_ball()
-    anim_rackets()
     detect_victory()
     compute_ball_collisions()
 
