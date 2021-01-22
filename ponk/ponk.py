@@ -192,6 +192,13 @@ def tick():
     actionsNextTick = []
 
 
+    move_ball()
+    anim_rackets()
+
+    detect_victory()
+    compute_ball_collisions()
+
+
 def anim_rackets():
     global leftRacket
     global rightRacket
@@ -295,11 +302,5 @@ actionsNextTick = []
 while True:
     win.update()
     tick()
-
-    move_ball()
-    anim_rackets()
-
-    detect_victory()
-    compute_ball_collisions()
 
     time.sleep(delay)
