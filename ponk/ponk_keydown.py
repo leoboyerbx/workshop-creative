@@ -21,16 +21,16 @@ def move_racket_down(racket, moveBy = racketOffset):
     move_racket(racket, -moveBy)
 
 
-def move_racket_up_anim(racket, moveBy = racketOffset/5, moveTimes = 5):
-    if len(racket.animQueue) == 0:
-        for i in range(moveTimes):
-            racket.animQueue.append(moveBy)
+def start_moving_up(racket, moveBy = racketOffset/5):
+    racket.moveBy = moveBy
 
 
-def move_racket_down_anim(racket, moveBy = racketOffset/5, moveTimes = 5):
-    if len(racket.animQueue) == 0:
-        for i in range(moveTimes):
-            racket.animQueue.append(-moveBy)
+def start_moving_down(racket, moveBy = racketOffset/5):
+    racket.moveBy = -moveBy
+
+
+def stop_moving(racket):
+    racket.moveBy = 0
 
 
 def move_racket(racket, moveBy):
@@ -98,7 +98,7 @@ def compute_ball_collisions():
 
 def detect_victory():
     x = ball.xcor()
-    if x <= (-screenWidth / 2):
+    if x <= (-screenWidth / 2) - 10:
         victory(1)
     elif x >= (screenWidth / 2):
         victory(0)
@@ -149,10 +149,8 @@ def tick():
 def anim_rackets():
     global leftRacket
     global rightRacket
-    if len(leftRacket.animQueue) > 0:
-        move_racket(leftRacket, leftRacket.animQueue.pop(0))
-    if len(rightRacket.animQueue) > 0:
-        move_racket(rightRacket, rightRacket.animQueue.pop(0))
+    move_racket(leftRacket, leftRacket.moveBy)
+    move_racket(rightRacket, rightRacket.moveBy)
 
 
 # bind_key
@@ -167,8 +165,8 @@ win.tracer(0)
 # rackets
 leftRacket = create_racket(-(screenWidth / 2))
 rightRacket = create_racket((screenWidth / 2) - 10)
-leftRacket.animQueue = []
-rightRacket.animQueue = []
+leftRacket.moveBy = 0
+rightRacket.moveBy = 0
 
 # field
 fieldSeparator = turtle.Turtle()
@@ -196,11 +194,15 @@ update_scores()
 paused = False
 
 win.listen()
-win.onkeypress(lambda: move_racket_up_anim(leftRacket), "a")
-win.onkeypress(lambda: move_racket_down_anim(leftRacket), "q")
+win.onkeypress(lambda: start_moving_up(leftRacket), "a")
+win.onkeypress(lambda: start_moving_down(leftRacket), "q")
+win.onkeyrelease(lambda: stop_moving(leftRacket), "a")
+win.onkeyrelease(lambda: stop_moving(leftRacket), "q")
 
-win.onkeypress(lambda: move_racket_up_anim(rightRacket), "Up")
-win.onkeypress(lambda: move_racket_down_anim(rightRacket), "Down")
+win.onkeypress(lambda: start_moving_up(rightRacket), "Up")
+win.onkeypress(lambda: start_moving_down(rightRacket), "Down")
+win.onkeyrelease(lambda: stop_moving(rightRacket), "Up")
+win.onkeyrelease(lambda: stop_moving(rightRacket), "Down")
 
 actionsNextTick = []
 # mainLoop
