@@ -1,13 +1,19 @@
 import random
-import time
 import turtle
 from numpy import sign
+from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+import os
+import matplotlib.pyplot as plt
+from glob import glob
+import shutil
+import time
+
 
 # Settings
 screenWidth = 1280
 screenHeight = 720
 
-racketSize = 100
+racketSize = 150
 # Racket speed
 racketOffset = 100
 
@@ -22,6 +28,66 @@ speedIncreaseMax = 25
 
 computerSight = 160
 computerSlowness = 8
+
+
+# Websocket
+# ----------------------------------------------
+# Needs to be global
+# ----------------------------------------------
+
+values = []
+fileName = ""
+folderPath = os.getcwd()
+
+plt.ion()
+
+
+class SmoothQueue():
+    def __init__(self, size = 4):
+        self.size = size
+        self.list = []
+
+    def push(self, val):
+        if len(self.list) >= self.size:
+            self.list.pop(0)
+        self.list.append(val)
+
+    def average(self):
+        return sum(self.list) / len(self.list)
+
+
+sensorY = None
+sensorSmoothLength = SmoothQueue(8)
+
+class FileSharingServer(WebSocket):
+    def handleMessage(self):
+        global rightRacket
+        if ">" in self.data:
+            try:
+                axes = self.data.replace(">", "")
+                axesValue = axes.split(';')
+                rawValue = min(float(axesValue[0]), 1000)
+                rawValue = max(rawValue, -1000)
+                global sensorY
+                global sensorSmoothLength
+                sensorSmoothLength.push(rawValue)
+                sensorY = sensorSmoothLength.average()
+            except Exception as err:
+                print(err)
+
+        else:
+            print("Appending")
+            print(self.data)
+            values.append(self.data)
+            print(len(values))
+
+    def handleConnected(self):
+        print(self.address, "Connected")
+
+    def handleClose(self):
+        print(self.address, "Closed")
+
+
 
 
 def move_racket_up(racket, moveBy=racketOffset):
@@ -144,8 +210,6 @@ def victory(player):
     paused = True
     leftRacket.animQueue = []
     rightRacket.animQueue = []
-    next_tick(lambda: time.sleep(2))
-    next_tick(unpause)
 
 
 def unpause():
@@ -187,6 +251,7 @@ def next_tick(action):
 
 def tick():
     global actionsNextTick
+    global sensorY
     for action in actionsNextTick:
         action()
     actionsNextTick = []
@@ -194,6 +259,14 @@ def tick():
 
     move_ball()
     anim_rackets()
+
+    # Priorité au capteur
+    if sensorY is not None:
+        screenVal = (screenHeight / 2) * (sensorY / 800)
+        screenVal = min(screenVal, screenHeight/2 - racketSize/2)
+        screenVal = max(screenVal, -screenHeight/2 + racketSize/2)
+        rightRacket.sety(screenVal)
+        sensorY = None
 
     detect_victory()
     compute_ball_collisions()
@@ -235,6 +308,17 @@ def computer_play(racket):
         diff = ball.ycor() - racket.ycor()
         move_racket(racket, sign(diff) * (ballOffset*2 - computerSlowness))
 
+def connection():
+    port = 8080
+    server = SimpleWebSocketServer('', port, FileSharingServer)
+    print("Running on: " + " Port: " + str(port))
+    server.serveforever()
+
+
+from threading import *
+
+t = Thread(target=connection)
+t.start()
 
 
 # bind_key

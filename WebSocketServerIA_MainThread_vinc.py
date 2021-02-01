@@ -7,7 +7,6 @@ from glob import glob
 import shutil
 from time import sleep, strftime, time
 import turtle
-import math
 
 from random import randint
 import threading
@@ -34,10 +33,6 @@ angle = 0
 speed = 0
 
 
-def roundToBase(lx, base=5):
-    return base * round(lx / base)
-
-
 def graph(acc):
     y.append(acc[0])
     x.append(time())
@@ -47,6 +42,8 @@ def graph(acc):
         plt.plot(x, y)
         plt.pause(0.00001)
 
+
+# previous = len(y)
 
 def saveFile(fname, val):
     print(fname)
@@ -119,23 +116,17 @@ class FileSharingServer(WebSocket):
             print(tpName)
 
         elif ">" in self.data:
-            try:
-                axes = self.data.replace(">", "")
-                axesValue = axes.split(';')
-                global angle
-                global speed
-                speed = (float(axesValue[2]) / 1000) * 10
-                rawCos = min(float(axesValue[0]), 1000)
-                rawCos = max(rawCos, -1000)
-                acos = math.acos(rawCos / 1000)
-                if float(axesValue[1]) > 0:
-                    rawAngle = math.degrees(-acos) % 360
-                else:
-                    rawAngle = math.degrees(acos)
-                angle = rawAngle - 90
-                print(rawAngle)
-            except Exception as exc:
-                print(exc)
+            axes = self.data.replace(">", "")
+            axesValue = axes.split(';')
+            print(axesValue[0])
+            global angle
+            global speed
+            if float(axesValue[1]) > 100:
+                speed = 3
+            elif float(axesValue[1]) < -100:
+                speed = -3
+            else:
+                angle = 0
 
         else:
             print("Appending")
@@ -195,3 +186,7 @@ while True:
 
 # hostname = socket.gethostname()
 # IPAddr = socket.gethostbyname(hostname)
+
+
+
+
