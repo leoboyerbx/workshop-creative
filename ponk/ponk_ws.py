@@ -44,15 +44,27 @@ plt.ion()
 
 class SmoothQueue():
     def __init__(self, size = 4):
+        """
+        Utilitary class to smooth a queue of values (sliding window)
+        :param size: The length of the window
+        """
         self.size = size
         self.list = []
 
     def push(self, val):
+        """
+        Adds a value in the queue
+        :param val:
+        """
         if len(self.list) >= self.size:
             self.list.pop(0)
         self.list.append(val)
 
     def average(self):
+        """
+        Get the average of the queue
+        :return: number
+        """
         return sum(self.list) / len(self.list)
 
 
@@ -91,38 +103,79 @@ class FileSharingServer(WebSocket):
 
 
 def move_racket_up(racket, moveBy=racketOffset):
+    """
+    Move a racket up by a specified offset
+    :param racket: The racket (Turtle instance) object to move
+    :param moveBy: The offset
+    """
     move_racket(racket, moveBy)
 
 
 def move_racket_down(racket, moveBy=racketOffset):
+    """
+    Moves a racket down by a specified offset
+    :param racket: The racket (Turtle instance) object to move
+    :param moveBy: The offset
+    """
     move_racket(racket, -moveBy)
 
 
 def start_moving_up(racket, moveBy=racketOffset / 5):
+    """
+    Defines that a racket should be moving up by a specified offset at each tick
+    :param racket: The racket (Turtle instance) object to move
+    :param moveBy: The offset
+    """
     racket.moveBy = moveBy
 
 
 def start_moving_down(racket, moveBy=racketOffset / 5):
+    """
+    Defines that a racket should be moving down by a specified offset at each tick
+    :param racket: The racket (Turtle instance) object to move
+    :param moveBy: The offset
+    """
     racket.moveBy = -moveBy
 
 
 def stop_moving(racket):
+    """
+    Defines that a racket should not be moving anymore at each tick
+    :param racket: The racket (Turtle instance) object to move
+    """
     racket.moveBy = 0
 
 
 def move_racket_up_anim(racket, moveBy=racketOffset / 5, moveTimes=5):
+    """
+    Moves a racket up with animation (will last several slides)
+    :param racket: The racket (Turtle instance) object to move
+    :param moveBy: The offset to move at each tick
+    :param moveTimes: The number of ticks the animation is supposed to last
+    """
     if len(racket.animQueue) == 0:
         for i in range(moveTimes):
             racket.animQueue.append(moveBy)
 
 
 def move_racket_down_anim(racket, moveBy=racketOffset / 5, moveTimes=5):
-        if len(racket.animQueue) == 0:
-            for i in range(moveTimes):
-                racket.animQueue.append(-moveBy)
+    """
+    Moves a racket down with animation (will last several slides)
+    :param racket: The racket (Turtle instance) object to move
+    :param moveBy: The offset to move at each tick
+    :param moveTimes: The number of ticks the animation is supposed to last
+    """
+    if len(racket.animQueue) == 0:
+        for i in range(moveTimes):
+            racket.animQueue.append(-moveBy)
 
 
 def move_racket(racket, moveBy):
+    """
+    Moves a racket by an arbitrary (relative) offset
+    :param racket: The racket (Turtle instance) object to move
+    :param moveBy: The offset to move
+    """
     y = racket.ycor()
     if (
             (y - (racketSize / 2) > - screenHeight / 2 and moveBy < 0)
@@ -133,6 +186,11 @@ def move_racket(racket, moveBy):
 
 
 def create_racket(xPos):
+    """
+    Creates a racket object (Turtle instance)
+    :param xPos: The x position of the racket on the screen
+    :return: the Turtle instance
+    """
     racket = turtle.Turtle()
     racket.speed(0)
     racket.shape('square')
@@ -150,6 +208,9 @@ def create_racket(xPos):
 
 
 def rand_ball_speed():
+    """
+    Sets the speed settings of the ball to random paramaters, while keeping an overall constant perceived screen
+    """
     global ballXSpeed
     global ballYSpeed
     ballXSpeed = random.choice([-1, 1]) * (random.random() + 0.5)
@@ -157,6 +218,9 @@ def rand_ball_speed():
 
 
 def move_ball():
+    """
+    Moves the ball by the defined per-tick offset
+    """
     global ball
     x = ball.xcor()
     y = ball.ycor()
@@ -167,6 +231,9 @@ def move_ball():
 
 
 def compute_ball_collisions():
+    """
+    Checks if the ball collides a racket or a screen border, and inverts the affected axis speed value if applicable
+    """
     global ballXSpeed
     global ballYSpeed
     global rightRacket
@@ -192,6 +259,9 @@ def compute_ball_collisions():
 
 
 def detect_victory():
+    """
+    Checks if the ball went out of the field, meaning one of the players won
+    """
     x = ball.xcor()
     if x <= (-screenWidth / 2) - 10:
         victory(1)
@@ -200,6 +270,10 @@ def detect_victory():
 
 
 def victory(player):
+    """
+    Called when a player won. Calculates the scores and resets the positions.
+    :param player: The index (0 or 1) of the player who won
+    """
     global scores
     global paused
     global leftRacket
@@ -213,11 +287,18 @@ def victory(player):
 
 
 def unpause():
+    """
+    Unpauses the game
+    """
     global paused
     paused = False
 
 
 def update_scores():
+    """
+    Updates the displayed scores
+    Every 5 points by the leader, increases the speed of the ball
+    """
     global scoresPen
     global ballSpeedPen
     global scores
