@@ -1,4 +1,4 @@
-from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+    from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
 import socket
 import numpy as np
 import os

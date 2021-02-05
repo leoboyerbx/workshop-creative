@@ -321,16 +321,26 @@ def update_scores():
 
 
 def reset_ball():
+    """
+    Puts the ball back in the center
+    """
     ball.goto(0, 0)
     rand_ball_speed()
 
 
 def next_tick(action):
+    """
+    Adds an action to be performed on the next tick
+    :param action:
+    """
     global actionsNextTick
     actionsNextTick.append(action)
 
 
 def tick():
+    """
+    Actions performed every tick
+    """
     global actionsNextTick
     global sensorY
     for action in actionsNextTick:
@@ -354,6 +364,9 @@ def tick():
 
 
 def anim_rackets():
+    """
+    Moves the rackets if they have movements to be done in their animation queue
+    """
     global leftRacket
     global rightRacket
 
@@ -372,6 +385,9 @@ def anim_rackets():
 
 
 def computer_play(racket):
+    """
+    Makes the selected racket play on its own
+    """
     xBall = ball.xcor()
     if (
             (
@@ -414,6 +430,8 @@ win.tracer(0)
 # rackets
 leftRacket = create_racket(-(screenWidth / 2))
 rightRacket = create_racket((screenWidth / 2) - 10)
+
+# Uncomment to enable computer play on rackets
 leftRacket.enableComputerPlay = True
 # rightRacket.enableComputerPlay = True
 
